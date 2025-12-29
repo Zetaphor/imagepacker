@@ -26,8 +26,16 @@ import argparse
 import os
 import sys
 from pprint import pprint
-from distutils.util import strtobool
 from imagepacker import pack_images
+
+def strtobool(val):
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return 1
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return 0
+    else:
+        raise ValueError("invalid truth value %r" % (val,))
 
 def guess_realpath(path):
     """Checks for a file in a path, or in a local path"""

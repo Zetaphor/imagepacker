@@ -67,8 +67,11 @@ class BlockPacker():
 
     def fit(self, blocks):
         nblocks = len(blocks)
-        w = blocks[0].w# if nblocks > 0 else 0
-        h = blocks[0].h# if nblocks > 0 else 0
+        if nblocks == 0:
+            self.root = _BlockNode(0, 0, 0, 0)
+            return
+        w = blocks[0].w
+        h = blocks[0].h
 
         self.root = _BlockNode(0,0, w,h)
 
@@ -231,10 +234,10 @@ def pack_images(image_paths, background=(0,0,0,0), format="PNG", extents=None, t
         image = Image.open(filename)
         # print(image.size)
 
-        image = image.transpose(Image.FLIP_TOP_BOTTOM)
+        image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
         # rescale images
         changes = None
-        if extents and extents[filename]:
+        if extents and filename in extents and extents[filename]:
             # print(filename, extents)
             image, changes = crop_by_extents(image, extents[filename], tile, crop)
 
@@ -275,5 +278,5 @@ def pack_images(image_paths, background=(0,0,0,0), format="PNG", extents=None, t
 
         output_image.paste(image, (block.x, block.y))
 
-    output_image = output_image.transpose(Image.FLIP_TOP_BOTTOM)
+    output_image = output_image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     return output_image, uv_changes

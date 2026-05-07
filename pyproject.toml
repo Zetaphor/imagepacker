@@ -1,0 +1,14 @@
+[project]
+name = "imagepacker"
+version = "0.1.0"
+description = "Pack OBJ textures into a single atlas with UV remapping"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pillow>=12.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pyinstaller",
+]

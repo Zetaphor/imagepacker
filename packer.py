@@ -168,14 +168,17 @@ def compute_extents(obj_lines, texmap, dmaps, log=None):
     return textents, used_mtl
 
 
-def run_pack(obj_path, mtl_path=None, output_name=None, crop=True, tile=True,
-             wrap=True, additional=None, tile_callback=None, log_callback=None):
+def run_pack(obj_path, mtl_path=None, output_name=None, output_dir=None,
+             crop=True, tile=True, wrap=True, additional=None,
+             tile_callback=None, log_callback=None):
     """Main packing entry point.
 
     Args:
         obj_path: Path to the .obj file.
         mtl_path: Optional explicit path to .mtl file; auto-detected if None.
         output_name: Base name for output files; defaults to <obj_name>_packed.
+        output_dir: Directory to write output into. If None, a subfolder named
+            output_name is created next to the .obj file.
         crop: Crop textures to used UV region.
         tile: Offer to tile textures that extend outside UV space.
         wrap: Shift remaining UV verts into [0,1] space.
@@ -305,9 +308,11 @@ def run_pack(obj_path, mtl_path=None, output_name=None, crop=True, tile=True,
                 new_obj_lines.append(line)
 
         # Write output
-        output_dir = os.path.join(wdir, output_name)
-        if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
+        if output_dir is None:
+            output_dir = os.path.join(wdir, output_name)
+        else:
+            output_dir = os.path.join(output_dir, output_name)
+        os.makedirs(output_dir, exist_ok=True)
 
         obj_out = os.path.join(output_dir, output_name + ".obj")
         mtl_out = os.path.join(output_dir, output_name + ".mtl")

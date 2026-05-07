@@ -12,10 +12,12 @@ It analyses what texture files a model uses and how much of each texture is refe
 
 ### GUI Application (no Python required)
 
-Download a pre-built binary from the [GitHub Actions](https://github.com/Zetaphor/imagepacker/actions) artifacts:
+Download a pre-built binary from the [latest release](https://github.com/Zetaphor/imagepacker/releases/latest):
 
-- **Windows**: `OBJ UV Packer.exe` from the latest workflow run
-- **Linux**: build locally with `./build.sh` (see [Building from source](#building-from-source))
+- **Windows**: `OBJ-UV-Packer-Windows.zip`
+- **Linux**: `OBJ-UV-Packer-Linux.zip`
+
+Extract the zip and run the executable. No Python installation needed.
 
 ### From source
 
@@ -109,13 +111,11 @@ pip install pillow pyinstaller
 
 Produces `dist/OBJ UV Packer` (standalone ELF binary).
 
-### Windows
+### Automated releases
 
-A GitHub Actions workflow automatically builds the Windows `.exe` on every push to `main`:
+A GitHub Actions workflow automatically builds both Windows and Linux binaries on every push to `master` and publishes them as a [GitHub release](https://github.com/Zetaphor/imagepacker/releases). You can also trigger a build manually from the Actions tab.
 
-1. Push your changes to the `main` branch
-2. Go to the [Actions tab](https://github.com/Zetaphor/imagepacker/actions)
-3. Download the `OBJ-UV-Packer-Windows` artifact from the latest run
+### Windows (manual build)
 
 To build manually on Windows:
 

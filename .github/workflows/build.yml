@@ -1,13 +1,28 @@
-name: Build Windows exe
+name: Build and Release
 
 on:
   push:
     branches: [master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: OBJ-UV-Packer-Windows
+            binary: "dist/OBJ UV Packer.exe"
+            zip_name: OBJ-UV-Packer-Windows.zip
+          - os: ubuntu-latest
+            artifact: OBJ-UV-Packer-Linux
+            binary: "dist/OBJ UV Packer"
+            zip_name: OBJ-UV-Packer-Linux.zip
+
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -18,11 +33,50 @@ jobs:
       - name: Install dependencies
         run: pip install pillow pyinstaller
 
-      - name: Build exe
+      - name: Build
         run: pyinstaller --onefile --windowed --name "OBJ UV Packer" gui.py
+
+      - name: Zip binary (Windows)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path "dist/OBJ UV Packer.exe" -DestinationPath "${{ matrix.zip_name }}"
+        shell: pwsh
+
+      - name: Zip binary (Linux)
+        if: runner.os == 'Linux'
+        run: cd dist && zip "../${{ matrix.zip_name }}" "OBJ UV Packer"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OBJ-UV-Packer-Windows
-          path: "dist/OBJ UV Packer.exe"
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.zip_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate tag
+        id: tag
+        run: echo "tag=v$(date +'%Y.%m.%d-%H%M%S')" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Build ${{ steps.tag.outputs.tag }}
+          body: |
+            Automated build from commit ${{ github.sha }}.
+
+            **Downloads:**
+            - `OBJ-UV-Packer-Windows.zip` — Windows executable
+            - `OBJ-UV-Packer-Linux.zip` — Linux executable
+          files: |
+            artifacts/OBJ-UV-Packer-Windows/OBJ-UV-Packer-Windows.zip
+            artifacts/OBJ-UV-Packer-Linux/OBJ-UV-Packer-Linux.zip

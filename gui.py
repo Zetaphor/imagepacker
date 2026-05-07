@@ -84,6 +84,19 @@ class App(tk.Tk):
 
         input_frame.columnconfigure(1, weight=1)
 
+        # --- Output directory ---
+        out_frame = ttk.LabelFrame(self, text="Output", padding=8)
+        out_frame.pack(fill="x", **pad)
+
+        self._outdir_var = tk.StringVar(value="(same folder as input)")
+        ttk.Entry(out_frame, textvariable=self._outdir_var,
+                  state="readonly", width=55).pack(side="left", fill="x",
+                                                    expand=True)
+        ttk.Button(out_frame, text="Browse...",
+                   command=self._browse_outdir).pack(side="left", padx=(4, 0))
+        ttk.Button(out_frame, text="Reset",
+                   command=self._reset_outdir).pack(side="left", padx=(4, 0))
+
         # --- Options ---
         opt_frame = ttk.LabelFrame(self, text="Options", padding=8)
         opt_frame.pack(fill="x", **pad)
@@ -165,6 +178,14 @@ class App(tk.Tk):
         if path:
             self._mtl_var.set(path)
 
+    def _browse_outdir(self):
+        folder = filedialog.askdirectory(title="Select output directory")
+        if folder:
+            self._outdir_var.set(folder)
+
+    def _reset_outdir(self):
+        self._outdir_var.set("(same folder as input)")
+
     # --- Logging ---
 
     def _log(self, msg):
@@ -232,18 +253,21 @@ class App(tk.Tk):
         mtl_val = self._mtl_var.get()
         mtl_path = mtl_val if os.path.isfile(mtl_val) else None
 
+        outdir_val = self._outdir_var.get()
+        output_dir = outdir_val if os.path.isdir(outdir_val) else None
+
         self._packing = True
         self._pack_btn.configure(state="disabled")
         self._status_var.set("Packing...")
 
         thread = threading.Thread(
             target=self._run_worker,
-            args=(list(self._obj_paths), mtl_path),
+            args=(list(self._obj_paths), mtl_path, output_dir),
             daemon=True,
         )
         thread.start()
 
-    def _run_worker(self, obj_paths, mtl_override):
+    def _run_worker(self, obj_paths, mtl_override, output_dir):
         succeeded = []
         failed = []
 
@@ -257,9 +281,10 @@ class App(tk.Tk):
             mtl_path = mtl_override if len(obj_paths) == 1 else None
 
             try:
-                output_dir = run_pack(
+                result_dir = run_pack(
                     obj_path=obj_path,
                     mtl_path=mtl_path,
+                    output_dir=output_dir,
                     crop=self._crop_var.get(),
                     tile=self._tile_var.get(),
                     wrap=self._wrap_var.get(),
@@ -267,7 +292,7 @@ class App(tk.Tk):
                                    if self._tile_var.get() else None),
                     log_callback=self._log,
                 )
-                succeeded.append((label, output_dir))
+                succeeded.append((label, result_dir))
             except PackError as e:
                 self._log("ERROR: " + str(e))
                 failed.append((label, str(e)))

@@ -2,6 +2,8 @@
 
 Takes Wavefront OBJ models with multiple textures and packs them into a single texture atlas, rewriting UV coordinates to match. Available as both a command-line tool and a GUI application.
 
+![Screenshot](screenshot.png)
+
 ## Quick Start
 
 1. **[Download the latest release](https://github.com/Zetaphor/imagepacker/releases/latest)** (Windows or Linux)
@@ -53,6 +55,9 @@ Launch the GUI by running `python gui.py` (from source) or double-clicking the b
 2. The tool recursively discovers all `.obj` files (skipping any `_packed` output directories)
 3. Each model is packed sequentially with auto-detected MTL files
 4. A summary shows which models succeeded or failed
+
+**Drag and drop (experimental):**
+You can also drag and drop `.obj` files or folders directly onto the window. This feature depends on the `tkinterdnd2` library and its native tkdnd component. It may not work on all systems depending on Tcl/Tk version compatibility. If drag and drop is unavailable, the file/folder buttons always work.
 
 ### Command Line
 
@@ -152,6 +157,10 @@ pyinstaller --onefile --windowed --name "OBJ UV Packer" gui.py
 ## Technical details
 
 A simple rectangle bin-packing algorithm places cropped textures into a single atlas. The algorithm is not optimal and is partly vertically biased. It does not attempt to rotate rectangles, but whitespace compresses well in practice.
+
+## Acknowledgements
+
+This project was originally created in 2014 and revived in 2026 with the assistance of AI.
 
 ## License
 

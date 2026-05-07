@@ -1,0 +1,28 @@
+name: Build Windows exe
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install pillow pyinstaller
+
+      - name: Build exe
+        run: pyinstaller --onefile --windowed --name "OBJ UV Packer" gui.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OBJ-UV-Packer-Windows
+          path: "dist/OBJ UV Packer.exe"

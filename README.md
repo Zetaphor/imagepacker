@@ -2,6 +2,14 @@
 
 Takes Wavefront OBJ models with multiple textures and packs them into a single texture atlas, rewriting UV coordinates to match. Available as both a command-line tool and a GUI application.
 
+## Quick Start
+
+1. **[Download the latest release](https://github.com/Zetaphor/imagepacker/releases/latest)** (Windows or Linux)
+2. Extract the zip and run **OBJ UV Packer**
+3. Click **Open OBJ File** (single model) or **Open Folder** (batch process a directory)
+4. Click **Pack Textures**
+5. Find your packed model in the `_packed` folder next to the original
+
 ## Why?
 
 Originally put together for packing complex models with multiple textures into a single `.obj` + texture file for use as custom models in [Tabletop Simulator](http://berserk-games.com/tabletop-simulator/). Instead of manually combining textures in GIMP and repositioning UVs in Blender, this tool automates the entire process.

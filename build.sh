@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pip install pillow pyinstaller 2>/dev/null || pip install --user pillow pyinstaller
+pip install pillow tkinterdnd2 pyinstaller 2>/dev/null || pip install --user pillow tkinterdnd2 pyinstaller
 
-pyinstaller --onefile --windowed --name "OBJ UV Packer" gui.py
+pyinstaller --onefile --windowed \
+    --collect-all tkinterdnd2 \
+    --name "OBJ UV Packer" gui.py
 
 echo ""
 echo "Build complete: dist/OBJ UV Packer"

@@ -31,10 +31,10 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: pip install pillow pyinstaller
+        run: pip install pillow tkinterdnd2 pyinstaller
 
       - name: Build
-        run: pyinstaller --onefile --windowed --name "OBJ UV Packer" gui.py
+        run: pyinstaller --onefile --windowed --collect-all tkinterdnd2 --name "OBJ UV Packer" gui.py
 
       - name: Zip binary (Windows)
         if: runner.os == 'Windows'

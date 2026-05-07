@@ -4,9 +4,16 @@
 
 import os
 import queue
+import re
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+
+try:
+    from tkinterdnd2 import TkinterDnD, DND_FILES
+    _DND_IMPORT_OK = True
+except ImportError:
+    _DND_IMPORT_OK = False
 
 from packer import run_pack, PackError
 
@@ -30,6 +37,7 @@ def find_obj_files(folder):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self._dnd_ok = self._try_init_dnd()
         self.title(WINDOW_TITLE)
         self.minsize(WINDOW_MIN_W, WINDOW_MIN_H)
         self.resizable(True, True)
@@ -41,7 +49,19 @@ class App(tk.Tk):
         self._obj_paths = []
 
         self._build_ui()
+        self._setup_dnd()
         self._poll_log()
+
+    def _try_init_dnd(self):
+        """Try to load tkdnd at runtime. Returns True on success."""
+        if not _DND_IMPORT_OK:
+            return False
+        try:
+            from tkinterdnd2.TkinterDnD import _require
+            _require(self)
+            return True
+        except Exception:
+            return False
 
     def _build_ui(self):
         pad = dict(padx=8, pady=4)
@@ -58,7 +78,17 @@ class App(tk.Tk):
         ttk.Button(btn_row, text="Open Folder...",
                    command=self._browse_folder).pack(side="left", padx=(8, 0))
 
-        self._input_var = tk.StringVar(value="(no file or folder selected)")
+        dnd_hint = " (or drag and drop here)" if self._dnd_ok else ""
+        self._drop_label = tk.Label(
+            input_frame,
+            text="Drop .obj files or a folder here",
+            relief="groove", padx=12, pady=10, fg="gray",
+        )
+        if self._dnd_ok:
+            self._drop_label.grid(row=0, column=2, sticky="e", padx=(12, 0))
+
+        self._input_var = tk.StringVar(
+            value="(no file or folder selected{})".format(dnd_hint))
         ttk.Label(input_frame, textvariable=self._input_var,
                   foreground="gray").grid(row=1, column=0, columnspan=3,
                                           sticky="w", pady=(4, 0))
@@ -137,6 +167,68 @@ class App(tk.Tk):
         self._log_text.configure(yscrollcommand=scrollbar.set)
         self._log_text.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+
+    # --- Drag and drop ---
+
+    def _setup_dnd(self):
+        if not self._dnd_ok:
+            return
+        try:
+            self.drop_target_register(DND_FILES)
+            self.dnd_bind("<<Drop>>", self._on_drop)
+        except Exception:
+            self._dnd_ok = False
+
+    def _parse_dnd_paths(self, data):
+        """Parse the space-separated path string from tkdnd.
+        Paths with spaces are wrapped in curly braces on some platforms."""
+        paths = []
+        for match in re.finditer(r'\{([^}]+)\}|(\S+)', data):
+            paths.append(match.group(1) or match.group(2))
+        return paths
+
+    def _on_drop(self, event):
+        if self._packing:
+            return
+        paths = self._parse_dnd_paths(event.data)
+        if not paths:
+            return
+
+        obj_files = []
+        folders = []
+        for p in paths:
+            if os.path.isdir(p):
+                folders.append(p)
+            elif os.path.isfile(p) and p.lower().endswith(".obj"):
+                obj_files.append(p)
+
+        if folders:
+            for folder in folders:
+                obj_files.extend(find_obj_files(folder))
+
+        if not obj_files:
+            messagebox.showwarning(
+                "No OBJ files",
+                "No .obj files found in the dropped items.",
+                parent=self)
+            return
+
+        obj_files = sorted(set(obj_files))
+        self._obj_paths = obj_files
+
+        if len(obj_files) == 1:
+            self._input_var.set(obj_files[0])
+            self._file_list_var.set("")
+            self._mtl_var.set("(auto-detect)")
+            self._mtl_frame.grid()
+        else:
+            self._input_var.set("{} OBJ file(s) dropped".format(len(obj_files)))
+            names = [os.path.basename(p) for p in obj_files]
+            self._file_list_var.set(
+                "Found {} OBJ file(s): {}".format(len(obj_files), ", ".join(names))
+            )
+            self._mtl_var.set("(auto-detect)")
+            self._mtl_frame.grid_remove()
 
     # --- File/folder browsing ---
 

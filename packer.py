@@ -106,10 +106,10 @@ def parse_mtl(mtl_path, output_name, log=None):
                     missing_basenames.append(bname)
                 dmaps.append(dmap)
                 line = " ".join([mtype, outname])
+            elif mtype.lower() == "map_d":
+                line = " ".join([mtype, outname])
             else:
                 continue
-        elif line.startswith("d "):
-            continue
 
         new_mtl_lines.append(line)
 
